@@ -59,6 +59,15 @@ export const deleteJob = async (req, res) => {
     }
 };
 
+export const getJobs = async (req, res) => {
+    try {
+        const jobs = await Job.find();
+        res.json(jobs);
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to get jobs', error: err.message });
+    }
+};
+
 export const getQuickRequests = async (req, res) => {
     try {
         const requests = await QuickRequest.find();

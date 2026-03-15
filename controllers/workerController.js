@@ -98,3 +98,27 @@ export const getWorkers = async (req, res) => {
         res.status(500).json({ message: 'Failed to get workers', error: err.message });
     }
 };
+
+export const updateBookingStatus = async (req, res) => {
+    try {
+        const { status } = req.body;
+        const allowed = ['Accepted', 'Cancelled', 'Completed'];
+        if (!allowed.includes(status)) {
+            return res.status(400).json({ message: `Status must be one of: ${allowed.join(', ')}` });
+        }
+
+        const booking = await Booking.findById(req.params.id);
+        if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+        // Only the assigned worker can update status
+        if (booking.workerId.toString() !== req.user.id) {
+            return res.status(403).json({ message: 'Not authorized to update this booking' });
+        }
+
+        booking.status = status;
+        await booking.save();
+        res.json({ message: `Booking marked as ${status}`, booking });
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to update booking status', error: err.message });
+    }
+};

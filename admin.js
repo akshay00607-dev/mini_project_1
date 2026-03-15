@@ -50,7 +50,7 @@ if (adminLoginForm) {
             const res = await fetch(`${API_BASE}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ identifier: email, password }),
             });
 
             const data = await res.json();
@@ -88,6 +88,8 @@ async function loadDashboardData() {
         <p style="margin:4px 0;">${c.message}</p>
         <small style="color:var(--text-soft)">${new Date(c.createdAt).toLocaleString()}</small>
       `, '/admin/contact');
+        } else if (contactRes.status === 401 || contactRes.status === 403) {
+            throw new Error('Unauthorized');
         }
 
         // 2. Fetch Quick Requests
@@ -100,6 +102,8 @@ async function loadDashboardData() {
         <p style="margin:4px 0;">${q.details}</p>
         <small style="color:var(--text-soft)">${new Date(q.createdAt).toLocaleString()}</small>
       `, '/admin/quick-requests');
+        } else if (qrRes.status === 401 || qrRes.status === 403) {
+            throw new Error('Unauthorized');
         }
 
         // 3. Fetch Users
@@ -113,6 +117,8 @@ async function loadDashboardData() {
         <span style="color:var(--text-soft)">(${u.email})</span>
         ${u.serviceType ? `<p style="margin:4px 0; font-size:0.8rem;">Type: ${u.serviceType}</p>` : ''}
       `, '/admin/users');
+        } else if (usersRes.status === 401 || usersRes.status === 403) {
+            throw new Error('Unauthorized');
         }
 
         // 4. Fetch Jobs
@@ -125,9 +131,18 @@ async function loadDashboardData() {
         <p style="margin:4px 0;">${j.location} • ${j.pay}</p>
         <small style="color:var(--text-soft)">Apps: ${j.applications.length}</small>
       `, '/admin/jobs');
+        } else if (jobsRes.status === 401 || jobsRes.status === 403) {
+           throw new Error('Unauthorized');
         }
     } catch (err) {
         console.error("Dashboard error:", err);
+        if (err.message === 'Unauthorized' || err.message.includes('Token')) {
+             authToken = null;
+             currentUser = null;
+             localStorage.removeItem('adminToken');
+             localStorage.removeItem('adminUser');
+             updateUI();
+        }
     }
 }
 

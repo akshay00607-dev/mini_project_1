@@ -1,3 +1,4 @@
+import express from 'express';
 import { getUserDashboard, updateUserProfile, changePassword } from '../controllers/userController.js';
 import { auth, requireRole } from '../verifyToken/auth.js';
 
